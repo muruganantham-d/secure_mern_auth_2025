@@ -1,27 +1,24 @@
+// src/components/LoginForm.jsx
 import React, { useState } from "react";
-import { loginUser, getProfile } from "../api/authApi";
-import { useAuth } from "../hooks/useAuth";
+import { useLoginUserMutation, useGetProfileQuery } from "../store/apiSlice";
 import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
-  const { setUser } = useAuth();
+  const [loginUser] = useLoginUserMutation();
+  const [msg, setMsg] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await loginUser({ email, password });
-
-      const profile = await getProfile(); // profile object
-      setUser(profile);
-
-      navigate("/dashboard");
+      await loginUser({ email, password }).unwrap();
+            setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (err) {
-      console.error("Login error:", err);
-      setMsg(err?.response?.data?.message || "Login failed");
+      setMsg(err?.data?.message || "Login failed");
     }
   };
 
@@ -29,16 +26,16 @@ const LoginForm = () => {
     <form onSubmit={handleSubmit}>
       <input
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
         required
       />
       <input
         type="password"
-        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
         required
       />
       <button type="submit">Login</button>

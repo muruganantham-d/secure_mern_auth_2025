@@ -1,14 +1,20 @@
+// src/components/ProtectedRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useGetProfileQuery } from "../store/apiSlice";
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { data: user, isLoading, isError, error } = useGetProfileQuery();
 
-  if (loading) return <p>Loading...</p>;
+  if (isLoading) return <p>Loading...</p>;
 
-  // If no user, redirect to login
-  if (!user) return <Navigate to="/login" replace />;
+  if (isError || !user) {
+    // If token expired or no user data, redirect to login
+    if (error?.status === 401) {
+      return <Navigate to="/login" replace />;
+    }
+    return <p>Something went wrong.</p>;
+  }
 
   return children;
 };

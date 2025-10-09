@@ -1,10 +1,30 @@
+// src/components/Navbar.jsx
 import React, { useState } from "react";
 import { FiUser } from "react-icons/fi";
-import { useAuth } from "../hooks/useAuth";
+import { useGetProfileQuery, useLogoutUserMutation } from "../store/apiSlice";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
+
+  // Fetch logged-in user
+  const { data: user, isLoading, isError } = useGetProfileQuery();
+
+  // Logout mutation
+  const [logoutUser] = useLogoutUserMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser().unwrap();
+      navigate("/login"); // redirect after logout
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
+  if (isLoading) return null; // don't show navbar while loading
+  if (isError || !user) return null; // hide if no user
 
   return (
     <div
@@ -20,32 +40,28 @@ const Navbar = () => {
       <h2>Dashboard</h2>
 
       <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-        {user && (
-          <>
-            <FiUser
-              style={{ cursor: "pointer" }}
-              onClick={() => setShowModal(true)}
-              title="Show Profile"
-              size={22}
-            />
-            <button
-              onClick={logout}
-              style={{
-                background: "red",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Logout
-            </button>
-          </>
-        )}
+        <FiUser
+          style={{ cursor: "pointer" }}
+          onClick={() => setShowModal(true)}
+          title="Show Profile"
+          size={22}
+        />
+        <button
+          onClick={handleLogout}
+          style={{
+            background: "red",
+            color: "white",
+            border: "none",
+            padding: "6px 12px",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
       </div>
 
-      {/* Modal */}
+      {/* Profile Modal */}
       {showModal && (
         <div
           style={{

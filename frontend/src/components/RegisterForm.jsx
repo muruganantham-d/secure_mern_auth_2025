@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { registerUser } from "../api/authApi";
+import { useRegisterUserMutation } from "../store/apiSlice";
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = () => {
   const [email, setEmail] = useState("");
@@ -7,13 +8,22 @@ const RegisterForm = () => {
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
 
+  const navigate = useNavigate();
+
+  const [registerUser, { isLoading }] = useRegisterUserMutation();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await registerUser({ email, password, name });
-      setMsg(res.data.message);
+      const res = await registerUser({ email, password, name }).unwrap();
+      setMsg(res?.message || "Registered successfully");
+
+      // Redirect to login page after 1 second
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
     } catch (err) {
-      setMsg(err.response?.data?.message || "Error");
+      setMsg(err?.data?.message || "Error during registration");
     }
   };
 
@@ -40,7 +50,11 @@ const RegisterForm = () => {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      <button type="submit">Register</button>
+
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? "Registering..." : "Register"}
+      </button>
+
       {msg && <p>{msg}</p>}
     </form>
   );

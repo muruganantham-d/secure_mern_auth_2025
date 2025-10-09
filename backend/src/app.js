@@ -19,10 +19,5 @@ app.use(cors({
 
 app.use("/api/auth", authRoutes);
 
-// protected route example
-app.get("/api/profile", requireAuth, (req, res) => {
-  // req.user set by auth middleware
-  res.json({ message: "This is protected", user: req.user });
-});
 
 export default app;
